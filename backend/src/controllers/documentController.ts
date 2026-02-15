@@ -1,56 +1,206 @@
 import { Request, Response } from 'express';
+import { prisma } from '../utils/prisma';
+import documentService from '../services/documentService';
 
-// Get all documents
-export const getAllDocuments = async (req: Request, res: Response) => {
-    try {
-        // Logic to retrieve documents goes here
-        res.status(200).json({ message: 'Retrieved all documents' });
-    } catch (error) {
-        res.status(500).json({ message: 'Error retrieving documents', error });
-    }
-};
+export const documentController = {
+    // Get all documents with pagination
+    async getAllDocuments(req: Request, res: Response) {
+        try {
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const siteId = req.query.siteId as string;
+            const skip = (page - 1) * limit;
 
-// Get a document by ID
-export const getDocumentById = async (req: Request, res: Response) => {
-    const id = req.params.id;
-    try {
-        // Logic to retrieve a document by ID goes here
-        res.status(200).json({ message: `Retrieved document with ID ${id}` });
-    } catch (error) {
-        res.status(500).json({ message: `Error retrieving document with ID ${id}`, error });
-    }
-};
+            const where = siteId ? { siteId } : {};
 
-// Create a new document
-export const createDocument = async (req: Request, res: Response) => {
-    try {
-        const newDocument = req.body;
-        // Logic to save the new document goes here
-        res.status(201).json({ message: 'Created new document', document: newDocument });
-    } catch (error) {
-        res.status(500).json({ message: 'Error creating document', error });
-    }
-};
+            const [documents, total] = await Promise.all([
+                prisma.document.findMany({
+                    where,
+                    skip,
+                    take: limit,
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                email: true,
+                                firstName: true,
+                                lastName: true,
+                            },
+                        },
+                        site: {
+                            select: {
+                                id: true,
+                                name: true,
+                                location: true,
+                            },
+                        },
+                    },
+                    orderBy: {
+                        createdAt: 'desc',
+                    },
+                }),
+                prisma.document.count({ where }),
+            ]);
 
-// Update a document by ID
-export const updateDocument = async (req: Request, res: Response) => {
-    const id = req.params.id;
-    try {
-        const updatedDocument = req.body;
-        // Logic to update the document goes here
-        res.status(200).json({ message: `Updated document with ID ${id}`, document: updatedDocument });
-    } catch (error) {
-        res.status(500).json({ message: `Error updating document with ID ${id}`, error });
-    }
-};
+            res.status(200).json({
+                documents,
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit),
+                },
+            });
+        } catch (error: any) {
+            res.status(500).json({ error: 'Error retrieving documents', message: error.message });
+        }
+    },
 
-// Delete a document by ID
-export const deleteDocument = async (req: Request, res: Response) => {
-    const id = req.params.id;
-    try {
-        // Logic to delete the document goes here
-        res.status(200).json({ message: `Deleted document with ID ${id}` });
-    } catch (error) {
-        res.status(500).json({ message: `Error deleting document with ID ${id}`, error });
-    }
+    // Get a document by ID
+    async getDocumentById(req: Request, res: Response) {
+        const id = req.params.id;
+        try {
+            const document = await prisma.document.findUnique({
+                where: { id },
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            email: true,
+                            firstName: true,
+                            lastName: true,
+                        },
+                    },
+                    site: {
+                        select: {
+                            id: true,
+                            name: true,
+                            location: true,
+                        },
+                    },
+                },
+            });
+
+            if (!document) {
+                return res.status(404).json({ error: 'Document not found' });
+            }
+
+            res.status(200).json(document);
+        } catch (error: any) {
+            res.status(500).json({ error: 'Error retrieving document', message: error.message });
+        }
+    },
+
+    // Create a new document (with file upload)
+    async createDocument(req: Request, res: Response) {
+        try {
+            const { siteId, docType, uploadedBy } = req.body;
+            const file = req.file;
+
+            if (!file) {
+                return res.status(400).json({ error: 'No file uploaded' });
+            }
+
+            // Generate S3 key
+            const fileKey = `${siteId}/${Date.now()}-${file.originalname}`;
+
+            // Upload to S3
+            const { fileUrl } = await documentService.uploadDocument(fileKey, file.buffer);
+
+            // Save document metadata to database
+            const document = await prisma.document.create({
+                data: {
+                    siteId,
+                    uploadedBy,
+                    fileName: file.originalname,
+                    fileUrl,
+                    fileKey,
+                    fileSize: file.size,
+                    fileType: file.mimetype,
+                    docType,
+                },
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            email: true,
+                            firstName: true,
+                            lastName: true,
+                        },
+                    },
+                    site: {
+                        select: {
+                            id: true,
+                            name: true,
+                        },
+                    },
+                },
+            });
+
+            res.status(201).json(document);
+        } catch (error: any) {
+            res.status(500).json({ error: 'Error creating document', message: error.message });
+        }
+    },
+
+    // Update a document by ID
+    async updateDocument(req: Request, res: Response) {
+        const id = req.params.id;
+        try {
+            const { docType } = req.body;
+
+            const document = await prisma.document.update({
+                where: { id },
+                data: {
+                    ...(docType && { docType }),
+                },
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            email: true,
+                            firstName: true,
+                            lastName: true,
+                        },
+                    },
+                },
+            });
+
+            res.status(200).json(document);
+        } catch (error: any) {
+            res.status(500).json({ error: 'Error updating document', message: error.message });
+        }
+    },
+
+    // Delete a document by ID
+    async deleteDocument(req: Request, res: Response) {
+        const id = req.params.id;
+        try {
+            // First, get the document to retrieve the S3 key
+            const document = await prisma.document.findUnique({
+                where: { id },
+            });
+
+            if (!document) {
+                return res.status(404).json({ error: 'Document not found' });
+            }
+
+            // Delete from S3
+            try {
+                await documentService.deleteDocument(document.fileKey);
+            } catch (s3Error: any) {
+                // Log S3 error but continue with database deletion
+                console.error('Error deleting file from S3:', s3Error.message);
+            }
+
+            // Delete from database
+            await prisma.document.delete({
+                where: { id },
+            });
+
+            res.status(200).json({ message: 'Document deleted successfully' });
+        } catch (error: any) {
+            res.status(500).json({ error: 'Error deleting document', message: error.message });
+        }
+    },
 };

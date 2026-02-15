@@ -11,17 +11,20 @@ node_modules/
 
 # Build output
 /dist
+dist/
+backend/dist/
+frontend/dist/
 
 # React
 
 # Production
 /build
+build/
 
-# Docker
-
-# Ignore Docker files
-Dockerfile
-docker-compose.yml
-
+# Docker - Allow Dockerfile and docker-compose.yml
 # Ignore Docker logs
-*.log
+# *.log is already ignored above
+
+# Test results
+verification-results.log
+test-results.log
