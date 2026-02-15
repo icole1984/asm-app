@@ -101,11 +101,11 @@ export const documentController = {
                 return res.status(400).json({ error: 'No file uploaded' });
             }
 
+            // Generate S3 key
+            const fileKey = `${siteId}/${Date.now()}-${file.originalname}`;
+
             // Upload to S3
-            const fileUrl = await documentService.uploadDocument(
-                `${siteId}/${Date.now()}-${file.originalname}`,
-                file.buffer
-            );
+            const { fileUrl } = await documentService.uploadDocument(fileKey, file.buffer);
 
             // Save document metadata to database
             const document = await prisma.document.create({
@@ -114,6 +114,7 @@ export const documentController = {
                     uploadedBy,
                     fileName: file.originalname,
                     fileUrl,
+                    fileKey,
                     fileSize: file.size,
                     fileType: file.mimetype,
                     docType,
@@ -175,6 +176,24 @@ export const documentController = {
     async deleteDocument(req: Request, res: Response) {
         const id = req.params.id;
         try {
+            // First, get the document to retrieve the S3 key
+            const document = await prisma.document.findUnique({
+                where: { id },
+            });
+
+            if (!document) {
+                return res.status(404).json({ error: 'Document not found' });
+            }
+
+            // Delete from S3
+            try {
+                await documentService.deleteDocument(document.fileKey);
+            } catch (s3Error: any) {
+                // Log S3 error but continue with database deletion
+                console.error('Error deleting file from S3:', s3Error.message);
+            }
+
+            // Delete from database
             await prisma.document.delete({
                 where: { id },
             });

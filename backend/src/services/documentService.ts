@@ -12,7 +12,7 @@ class DocumentService {
     });
   }
 
-  async uploadDocument(fileName: string, fileContent: Buffer): Promise<string> {
+  async uploadDocument(fileName: string, fileContent: Buffer): Promise<{ fileUrl: string; fileKey: string }> {
     const params = {
       Bucket: env.AWS_S3_BUCKET,
       Key: fileName,
@@ -22,18 +22,20 @@ class DocumentService {
 
     try {
       const data = await this.s3.upload(params).promise();
-      return data.Location;
+      return {
+        fileUrl: data.Location,
+        fileKey: fileName,
+      };
     } catch (err: any) {
       throw new Error(`Failed to upload document: ${err.message}`);
     }
   }
 
-  async deleteDocument(fileUrl: string): Promise<void> {
+  async deleteDocument(fileKey: string): Promise<void> {
     try {
-      const key = fileUrl.split('/').slice(-2).join('/');
       await this.s3.deleteObject({
         Bucket: env.AWS_S3_BUCKET,
-        Key: key,
+        Key: fileKey,
       }).promise();
     } catch (err: any) {
       throw new Error(`Failed to delete document: ${err.message}`);
