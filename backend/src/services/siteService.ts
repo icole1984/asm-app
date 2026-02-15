@@ -1,55 +1,31 @@
-import { PrismaClient } from '@prisma/client';
+// siteService.ts
 
-const prisma = new PrismaClient();
+// Function to create a new site
+export const createSite = async (siteData) => {
+    // implementation goes here
+};
 
-export const siteService = {
-  async createSite(data: any) {
-    return await prisma.site.create({
-      data: {
-        name: data.name,
-        location: data.location,
-        address: data.address,
-        postcode: data.postcode,
-        startDate: new Date(data.startDate),
-        endDate: data.endDate ? new Date(data.endDate) : null,
-        managerId: data.managerId,
-      },
-    });
-  },
+// Function to retrieve all sites
+export const getAllSites = async () => {
+    // implementation goes here
+};
 
-  async getSiteById(id: string) {
-    return await prisma.site.findUnique({
-      where: { id },
-      include: {
-        manager: true,
-        operations: true,
-        documents: true,
-        checklists: true,
-      },
-    });
-  },
+// Function to get a site by its ID
+export const getSiteById = async (siteId) => {
+    // implementation goes here
+};
 
-  async getAllSites(managerId?: string) {
-    return await prisma.site.findMany({
-      where: managerId ? { managerId } : {},
-      include: { manager: true, operations: true },
-    });
-  },
+// Function to update an existing site
+export const updateSite = async (siteId, updatedData) => {
+    // implementation goes here
+};
 
-  async updateSite(id: string, data: any) {
-    return await prisma.site.update({
-      where: { id },
-      data: {
-        name: data.name,
-        location: data.location,
-        address: data.address,
-        postcode: data.postcode,
-        status: data.status,
-      },
-    });
-  },
+// Function to delete a site
+export const deleteSite = async (siteId) => {
+    // implementation goes here
+};
 
-  async deleteSite(id: string) {
-    return await prisma.site.delete({ where: { id } });
-  },
+// Function to retrieve sites by manager ID
+export const getSitesByManager = async (managerId) => {
+    // implementation goes here
 };
