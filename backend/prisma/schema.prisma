@@ -1,0 +1,143 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      UserRole
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sites      Site[]
+  operations SiteOperation[]
+  documents  Document[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  WORKER
+  OFFICE_ADMIN
+}
+
+model Site {
+  id          String   @id @default(cuid())
+  name        String
+  location    String
+  address     String
+  postcode    String
+  startDate   DateTime
+  endDate     DateTime?
+  status      SiteStatus @default(ACTIVE)
+  managerId   String
+  manager     User     @relation(fields: [managerId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  operations  SiteOperation[]
+  documents   Document[]
+  checklists  Checklist[]
+
+  @@map("sites")
+}
+
+enum SiteStatus {
+  PLANNING
+  ACTIVE
+  PAUSED
+  COMPLETED
+  ARCHIVED
+}
+
+model SiteOperation {
+  id          String   @id @default(cuid())
+  siteId      String
+  site        Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  operationType String
+  description String
+  startTime   DateTime
+  endTime     DateTime?
+  duration    Int?
+  workersCount Int
+  status      OperationStatus @default(IN_PROGRESS)
+  recordedBy  String
+  user        User     @relation(fields: [recordedBy], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("site_operations")
+}
+
+enum OperationStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  ON_HOLD
+  CANCELLED
+}
+
+model Checklist {
+  id        String   @id @default(cuid())
+  siteId    String
+  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  name      String
+  items     ChecklistItem[]
+  status    ChecklistStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("checklists")
+}
+
+enum ChecklistStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+model ChecklistItem {
+  id          String   @id @default(cuid())
+  checklistId String
+  checklist   Checklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  description String
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+
+  @@map("checklist_items")
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  siteId    String
+  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  uploadedBy String
+  user      User     @relation(fields: [uploadedBy], references: [id])
+  fileName  String
+  fileUrl   String
+  fileSize  Int
+  fileType  String
+  docType   DocumentType
+  createdAt DateTime @default(now())
+
+  @@map("documents")
+}
+
+enum DocumentType {
+  FORM
+  PHOTO
+  REPORT
+  CERTIFICATE
+  SAFETY_PLAN
+  OTHER
+}
