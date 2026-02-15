@@ -3,6 +3,7 @@ import multer from 'multer';
 import { documentController } from '../controllers/documentController';
 import { authMiddleware, roleMiddleware } from '../middleware/auth';
 import { paginationValidation } from '../utils/validation';
+import { apiLimiter, writeLimiter } from '../middleware/rateLimiter';
 
 const router = Router();
 
@@ -35,6 +36,7 @@ const upload = multer({
 
 // All routes require authentication
 router.use(authMiddleware);
+router.use(apiLimiter);
 
 // Get all documents with pagination and optional site filter
 router.get('/', paginationValidation, documentController.getAllDocuments);
@@ -43,12 +45,12 @@ router.get('/', paginationValidation, documentController.getAllDocuments);
 router.get('/:id', documentController.getDocumentById);
 
 // Upload new document
-router.post('/', upload.single('file'), documentController.createDocument);
+router.post('/', writeLimiter, upload.single('file'), documentController.createDocument);
 
 // Update document metadata
-router.put('/:id', documentController.updateDocument);
+router.put('/:id', writeLimiter, documentController.updateDocument);
 
 // Delete document (ADMIN or MANAGER only)
-router.delete('/:id', roleMiddleware(['ADMIN', 'MANAGER']), documentController.deleteDocument);
+router.delete('/:id', writeLimiter, roleMiddleware(['ADMIN', 'MANAGER']), documentController.deleteDocument);
 
 export default router;
