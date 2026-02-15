@@ -1,18 +1,27 @@
-# Build and Release Folders
-bin-debug/
-bin-release/
-[Oo]bj/
-[Bb]in/
+# Node.js
 
-# Other files and folders
-.settings/
+# Logs
+*.log
 
-# Executables
-*.swf
-*.air
-*.ipa
-*.apk
+# Dependency directories
+node_modules/
 
-# Project files, i.e. `.project`, `.actionScriptProperties` and `.flexProperties`
-# should NOT be excluded as they contain compiler settings and other important
-# information for Eclipse / Flash Builder.
+# dotenv environment variable file
+.env
+
+# Build output
+/dist
+
+# React
+
+# Production
+/build
+
+# Docker
+
+# Ignore Docker files
+Dockerfile
+docker-compose.yml
+
+# Ignore Docker logs
+*.log
