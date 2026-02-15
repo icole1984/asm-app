@@ -1,1 +1,0 @@
-{"version":3,"file":"operationsController.d.ts","sourceRoot":"","sources":["../../src/controllers/operationsController.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,EAAE,QAAQ,EAAE,MAAM,SAAS,CAAC;AAG5C,eAAO,MAAM,oBAAoB;yBAEF,OAAO,OAAO,QAAQ;6BAUlB,OAAO,OAAO,QAAQ;0BAUzB,OAAO,OAAO,QAAQ;yBAavB,OAAO,OAAO,QAAQ;yBAUtB,OAAO,OAAO,QAAQ;CAQpD,CAAC"}
