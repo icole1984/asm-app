@@ -1,1 +1,15 @@
-{"name": "asm-app", "version": "1.0.0", "description": "Asbestos Site Management Application - Real-time site operation tracking and paperwork digitization", "private": true, "workspaces": ["frontend", "backend"], "scripts": {"dev": "npm run dev -w frontend & npm run dev -w backend", "build": "npm run build -w frontend && npm run build -w backend", "test": "npm run test -w frontend && npm run test -w backend"}}
+{
+  "name": "asm-app",
+  "version": "1.0.0",
+  "description": "Asbestos Site Management Application - Real-time site operation tracking and paperwork digitization",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w frontend & npm run dev -w backend",
+    "build": "npm run build -w frontend && npm run build -w backend",
+    "test": "npm run test -w frontend && npm run test -w backend"
+  }
+}
