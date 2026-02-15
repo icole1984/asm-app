@@ -1,44 +1,32 @@
-// authService.ts
+'use strict';
 
-/**
- * AuthService handles user authentication processes.
- */
-class AuthService {
-    constructor() {
-        // Initialize any required properties
-    }
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const User = require('../models/User'); // Assuming you have a User model
 
-    /**
-     * Registers a new user.
-     * @param {string} username - The username of the new user.
-     * @param {string} password - The password for the new user.
-     */
-    async register(username, password) {
-        // Implementation for user registration
-        console.log(`Registering user ${username}`);
-        // Your registration logic here
-    }
+const JWT_SECRET = 'your_jwt_secret'; // Replace with your actual JWT secret
 
-    /**
-     * Logs in a user.
-     * @param {string} username - The username of the user.
-     * @param {string} password - The password of the user.
-     */
-    async login(username, password) {
-        // Implementation for user login
-        console.log(`Logging in user ${username}`);
-        // Your authentication logic here
-    }
+// Register function
+async function register(username, password) {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({
+        username: username,
+        password: hashedPassword
+    });
 
-    /**
-     * Retrieves user information by ID.
-     * @param {string} userId - The ID of the user.
-     */
-    async getUserById(userId) {
-        // Implementation to fetch user information
-        console.log(`Getting user info for ID: ${userId}`);
-        // Your logic to get user info here
-    }
+    return newUser.save();
 }
 
-export default new AuthService();
+// Login function
+async function login(username, password) {
+    const user = await User.findOne({ username: username });
+    if (!user) throw new Error('User not found');
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) throw new Error('Invalid credentials');
+
+    const token = jwt.sign({ id: user._id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+    return { token, user };
+}
+
+module.exports = { register, login };
