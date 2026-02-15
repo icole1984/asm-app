@@ -1,64 +1,57 @@
-// operationsController.ts
-
 import { Request, Response } from 'express';
-import { Operation } from '../models/Operation'; // Import your Operation model
+import { operationsService } from '../services/operationsService';
 
-// Create New Operation
-export const createOperation = async (req: Request, res: Response) => {
-    try {
-        const operation = new Operation(req.body);
-        await operation.save();
-        res.status(201).send(operation);
-    } catch (error) {
-        res.status(400).send(error);
-    }
-};
-
-// Get Operations by Site
-export const getOperationsBySite = async (req: Request, res: Response) => {
-    try {
-        const operations = await Operation.find({ siteId: req.params.siteId });
-        res.status(200).send(operations);
-    } catch (error) {
-        res.status(500).send(error);
-    }
-};
-
-// Get Operation by ID
-export const getOperationById = async (req: Request, res: Response) => {
-    try {
-        const operation = await Operation.findById(req.params.id);
-        if (!operation) {
-            return res.status(404).send();
+export const operationsController = {
+    // Create New Operation
+    async createOperation(req: Request, res: Response) {
+        try {
+            const operation = await operationsService.createOperation(req.body);
+            res.status(201).json(operation);
+        } catch (error: any) {
+            res.status(400).json({ error: error.message });
         }
-        res.status(200).send(operation);
-    } catch (error) {
-        res.status(500).send(error);
-    }
-};
+    },
 
-// Update Operation
-export const updateOperation = async (req: Request, res: Response) => {
-    try {
-        const operation = await Operation.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-        if (!operation) {
-            return res.status(404).send();
+    // Get Operations by Site
+    async getOperationsBySite(req: Request, res: Response) {
+        try {
+            const operations = await operationsService.getOperationsBySite(req.params.siteId);
+            res.status(200).json(operations);
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
         }
-        res.status(200).send(operation);
-    } catch (error) {
-        res.status(400).send(error);
-    }
-};
+    },
 
-// Delete Operation
-export const deleteOperation = async (req: Request, res: Response) => {
-    try {
-        const operation = await Operation.findByIdAndDelete(req.params.id);
-        if (!operation) {
-            return res.status(404).send();
+    // Get Operation by ID
+    async getOperationById(req: Request, res: Response) {
+        try {
+            const operation = await operationsService.getOperationById(req.params.id);
+            if (!operation) {
+                return res.status(404).json({ error: 'Operation not found' });
+            }
+            res.status(200).json(operation);
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
         }
-        res.status(200).send({ message: 'Operation deleted successfully!' });
-    } catch (error) {
-        res.status(500).send(error);
+    },
+
+    // Update Operation
+    async updateOperation(req: Request, res: Response) {
+        try {
+            const operation = await operationsService.updateOperation(req.params.id, req.body);
+            res.status(200).json(operation);
+        } catch (error: any) {
+            res.status(400).json({ error: error.message });
+        }
+    },
+
+    // Delete Operation
+    async deleteOperation(req: Request, res: Response) {
+        try {
+            await operationsService.deleteOperation(req.params.id);
+            res.status(200).json({ message: 'Operation deleted successfully!' });
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
     }
 };

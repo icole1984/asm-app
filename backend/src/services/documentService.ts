@@ -1,13 +1,20 @@
 import AWS from 'aws-sdk';
+import { env } from '../utils/env';
 
 class DocumentService {
+  private s3: AWS.S3;
+
   constructor() {
-    this.s3 = new AWS.S3();
+    this.s3 = new AWS.S3({
+      accessKeyId: env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+      region: env.AWS_REGION,
+    });
   }
 
-  async uploadDocument(fileName, fileContent) {
+  async uploadDocument(fileName: string, fileContent: Buffer): Promise<string> {
     const params = {
-      Bucket: 'your-bucket-name', // Replace with your S3 bucket name
+      Bucket: env.AWS_S3_BUCKET,
       Key: fileName,
       Body: fileContent,
       ContentType: 'application/octet-stream',
@@ -16,12 +23,34 @@ class DocumentService {
     try {
       const data = await this.s3.upload(params).promise();
       return data.Location;
-    } catch (err) {
+    } catch (err: any) {
       throw new Error(`Failed to upload document: ${err.message}`);
     }
   }
 
-  // Additional document handling methods can be added here
+  async deleteDocument(fileUrl: string): Promise<void> {
+    try {
+      const key = fileUrl.split('/').slice(-2).join('/');
+      await this.s3.deleteObject({
+        Bucket: env.AWS_S3_BUCKET,
+        Key: key,
+      }).promise();
+    } catch (err: any) {
+      throw new Error(`Failed to delete document: ${err.message}`);
+    }
+  }
+
+  async getSignedUrl(fileName: string): Promise<string> {
+    try {
+      return this.s3.getSignedUrl('getObject', {
+        Bucket: env.AWS_S3_BUCKET,
+        Key: fileName,
+        Expires: 3600, // URL expires in 1 hour
+      });
+    } catch (err: any) {
+      throw new Error(`Failed to generate signed URL: ${err.message}`);
+    }
+  }
 }
 
 export default new DocumentService();
