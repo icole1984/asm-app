@@ -94,6 +94,10 @@
 
 ## 🚀 Quick Start
 
+**Want to get started quickly?** See [QUICK_START.md](QUICK_START.md)
+
+**Need deployment instructions?** See [DEPLOYMENT.md](DEPLOYMENT.md)
+
 ### Prerequisites
 - Node.js >= 18.x
 - PostgreSQL >= 14.x
@@ -126,6 +130,24 @@ npm start
 ```
 
 The API will be available at `http://localhost:5000`
+
+### Quick Verification
+
+```bash
+# Check if server is running
+curl http://localhost:5000/health
+
+# Run verification tests
+./verify-deployment.sh
+
+# Or run feature demo
+./demo-features.sh
+```
+
+For detailed deployment instructions, see:
+- [QUICK_START.md](QUICK_START.md) - Get running in 5 minutes
+- [DEPLOYMENT.md](DEPLOYMENT.md) - Complete deployment guide
+- [backend/README.md](backend/README.md) - API documentation
 
 ---
 
