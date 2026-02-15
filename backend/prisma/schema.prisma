@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -13,7 +13,7 @@ model User {
   password  String
   firstName String
   lastName  String
-  role      UserRole
+  role String @default("WORKER")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -24,12 +24,7 @@ model User {
   @@map("users")
 }
 
-enum UserRole {
-  ADMIN
-  MANAGER
-  WORKER
-  OFFICE_ADMIN
-}
+
 
 model Site {
   id          String   @id @default(cuid())
@@ -39,7 +34,7 @@ model Site {
   postcode    String
   startDate   DateTime
   endDate     DateTime?
-  status      SiteStatus @default(ACTIVE)
+  status String @default("ACTIVE")
   managerId   String
   manager     User     @relation(fields: [managerId], references: [id])
   createdAt   DateTime @default(now())
@@ -52,13 +47,7 @@ model Site {
   @@map("sites")
 }
 
-enum SiteStatus {
-  PLANNING
-  ACTIVE
-  PAUSED
-  COMPLETED
-  ARCHIVED
-}
+
 
 model SiteOperation {
   id          String   @id @default(cuid())
@@ -70,7 +59,7 @@ model SiteOperation {
   endTime     DateTime?
   duration    Int?
   workersCount Int
-  status      OperationStatus @default(IN_PROGRESS)
+  status String @default("IN_PROGRESS")
   recordedBy  String
   user        User     @relation(fields: [recordedBy], references: [id])
   createdAt   DateTime @default(now())
@@ -79,13 +68,7 @@ model SiteOperation {
   @@map("site_operations")
 }
 
-enum OperationStatus {
-  PLANNED
-  IN_PROGRESS
-  COMPLETED
-  ON_HOLD
-  CANCELLED
-}
+
 
 model Checklist {
   id        String   @id @default(cuid())
@@ -93,18 +76,14 @@ model Checklist {
   site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
   name      String
   items     ChecklistItem[]
-  status    ChecklistStatus @default(PENDING)
+  status String @default("PENDING")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("checklists")
 }
 
-enum ChecklistStatus {
-  PENDING
-  IN_PROGRESS
-  COMPLETED
-}
+
 
 model ChecklistItem {
   id          String   @id @default(cuid())
@@ -127,17 +106,10 @@ model Document {
   fileUrl   String
   fileSize  Int
   fileType  String
-  docType   DocumentType
+  docType String @default("OTHER")
   createdAt DateTime @default(now())
 
   @@map("documents")
 }
 
-enum DocumentType {
-  FORM
-  PHOTO
-  REPORT
-  CERTIFICATE
-  SAFETY_PLAN
-  OTHER
-}
+
