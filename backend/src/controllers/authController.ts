@@ -11,7 +11,6 @@ export const authController = {
       res.status(400).json({ error: error.message });
     }
   },
-
   async login(req: Request, res: Response) {
     try {
       const { email, password } = req.body;
@@ -21,10 +20,10 @@ export const authController = {
       res.status(401).json({ error: error.message });
     }
   },
-
-  async getProfile(req: any, res: Response) {
+  async getProfile(req: Request, res: Response) {
     try {
-      const user = await authService.getUserById(req.user.id);
+      const userId = (req as any).user.id;
+      const user = await authService.getUserById(userId);
       res.status(200).json(user);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
