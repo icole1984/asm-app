@@ -14,10 +14,8 @@ export const siteController = {
 
     async getAllSites(req: Request, res: Response) {
         try {
-            const page = parseInt(req.query.page as string) || 1;
-            const limit = parseInt(req.query.limit as string) || 10;
-            const result = await siteService.getAllSites(page, limit);
-            res.status(200).json(result);
+            const sites = await siteService.getAllSites();
+            res.status(200).json(sites);
         } catch (error: any) {
             res.status(500).json({ error: error.message });
         }
@@ -57,10 +55,8 @@ export const siteController = {
     async getSitesByManager(req: Request, res: Response) {
         try {
             const { managerId } = req.params;
-            const page = parseInt(req.query.page as string) || 1;
-            const limit = parseInt(req.query.limit as string) || 10;
-            const result = await siteService.getSitesByManager(managerId, page, limit);
-            res.status(200).json(result);
+            const sites = await siteService.getSitesByManager(managerId);
+            res.status(200).json(sites);
         } catch (error: any) {
             res.status(500).json({ error: error.message });
         }

@@ -1,13 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { env } from '../utils/env';
 
 export interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    role: string;
-  };
+  user?: any;
 }
 
 export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -18,16 +13,13 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
       return res.status(401).json({ error: 'No token provided' });
     }
 
-    const decoded = jwt.verify(token, env.JWT_SECRET) as { id: string; email: string; role: string };
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
     req.user = decoded;
     next();
   } catch (error) {
     res.status(401).json({ error: 'Invalid token' });
   }
 };
-
-// Export as 'authenticate' alias for compatibility
-export const authenticate = authMiddleware;
 
 export const roleMiddleware = (allowedRoles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {

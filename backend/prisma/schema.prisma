@@ -125,7 +125,6 @@ model Document {
   user      User     @relation(fields: [uploadedBy], references: [id])
   fileName  String
   fileUrl   String
-  fileKey   String
   fileSize  Int
   fileType  String
   docType   DocumentType
