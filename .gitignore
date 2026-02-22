@@ -5,23 +5,35 @@
 
 # Dependency directories
 node_modules/
+package-lock.json
 
 # dotenv environment variable file
 .env
+.env.local
+.env.production
 
 # Build output
 /dist
+dist/
 
 # React
 
 # Production
 /build
 
-# Docker
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# Ignore Docker files
-Dockerfile
-docker-compose.yml
+# OS
+.DS_Store
+Thumbs.db
 
-# Ignore Docker logs
-*.log
+# Testing
+coverage/
+
+# Misc
+*.tsbuildinfo
+.cache/

@@ -5,7 +5,8 @@ export interface AuthRequest extends Request {
   user?: any;
 }
 
-export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
+// Authentication middleware - verify JWT token
+export const authenticate = (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
     
@@ -21,11 +22,17 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
   }
 };
 
-export const roleMiddleware = (allowedRoles: string[]) => {
+// Authorization middleware - check user roles
+export const authorize = (allowedRoles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user || !allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Unauthorized role' });
+      return res.status(403).json({ error: 'Insufficient permissions' });
     }
     next();
   };
 };
+
+// Legacy exports for backward compatibility
+export const authMiddleware = authenticate;
+export const roleMiddleware = authorize;
+
